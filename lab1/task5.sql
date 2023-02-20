@@ -8,7 +8,6 @@ BEGIN
     ELSE
         INSERT INTO MYTABLE VALUES (new_id, new_val);
     end if;
-
 END;
 
 CREATE OR REPLACE PROCEDURE update_my_table(record_id NUMBER, new_val NUMBER)

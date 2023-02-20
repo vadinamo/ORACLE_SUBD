@@ -1,4 +1,3 @@
-DROP TABLE MyTable;
 
 CREATE TABLE MyTable (
 	id NUMBER,
