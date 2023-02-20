@@ -1,1 +1,3 @@
-T
+begin
+    DBMS_OUTPUT.PUT_LINE(SYSTIMESTAMP);
+end;
