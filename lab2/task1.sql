@@ -4,7 +4,7 @@ DROP TABLE GROUPS;
 CREATE TABLE Students (
 	id NUMBER,
 	name VARCHAR2(100),
-	group_id number
+	group_id NUMBER
 );
 
 CREATE TABLE Groups (

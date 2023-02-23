@@ -3,5 +3,7 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/task1.sql" dialect="Oracle" />
     <file url="file://$PROJECT_DIR$/task3.sql" dialect="Oracle" />
+    <file url="file://$PROJECT_DIR$/task5.sql" dialect="GenericSQL" />
+    <file url="PROJECT" dialect="Oracle" />
   </component>
 </project>
