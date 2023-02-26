@@ -10,8 +10,8 @@ BEGIN
             SET ID = event.old_id, NAME = event.old_name, GROUP_ID = event.old_group_id
             WHERE ID = event.new_id;
         ELSIF event.event = 'DELETE' THEN
-            INSERT INTO STUDENTS(NAME, GROUP_ID)
-            VALUES(event.old_name, event.old_group_id);
+            INSERT INTO STUDENTS(ID, NAME, GROUP_ID)
+            VALUES(event.OLD_ID, event.old_name, event.old_group_id);
         END IF;
     END LOOP;
 end;

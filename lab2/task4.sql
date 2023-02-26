@@ -1,3 +1,4 @@
+-- 5
 DROP SEQUENCE students_logs_id;
 CREATE SEQUENCE students_logs_id;
 

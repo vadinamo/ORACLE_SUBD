@@ -8,7 +8,9 @@ CREATE OR REPLACE TRIGGER group_insert_id
     BEFORE INSERT ON GROUPS
     FOR EACH ROW
 BEGIN
-    :NEW.id := group_id.NEXTVAL;
+    IF :NEW.id IS NULL THEN
+        :NEW.id := group_id.NEXTVAL;
+    end if;
 END group_insert_id;
 
 CREATE OR REPLACE TRIGGER group_insert_name
@@ -30,5 +32,7 @@ CREATE OR REPLACE TRIGGER student_insert_id
     BEFORE INSERT ON STUDENTS
     FOR EACH ROW
 BEGIN
-    :NEW.id := student_id.NEXTVAL;
+    IF :NEW.id IS NULL THEN
+        :NEW.id := student_id.NEXTVAL;
+    end if;
 END student_insert_id;
