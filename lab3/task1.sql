@@ -5,8 +5,7 @@ CREATE OR REPLACE PROCEDURE get_table_differences(dev_schema_name VARCHAR2, prod
         SELECT * FROM ALL_TABLES
         WHERE OWNER = dev_schema_name;
 BEGIN
-    DBMS_OUTPUT.PUT_LINE('-----------------------------------------------');
-    DBMS_OUTPUT.PUT_LINE('TABLES FROM ' || dev_schema_name || ' THAT ARE NOT IN ' || prod_schema_name || ':');
+    DBMS_OUTPUT.PUT_LINE(DASHES('TABLES FROM ' || dev_schema_name || ' THAT ARE NOT IN ' || prod_schema_name || ':'));
 
     FOR dev_table in dev_schema_tables LOOP
         SELECT COUNT(*) INTO columns_count FROM
@@ -72,7 +71,7 @@ BEGIN
             END IF;
         END IF;
     END LOOP;
-    DBMS_OUTPUT.PUT_LINE('-----------------------------------------------');
+    DBMS_OUTPUT.PUT_LINE('--------------------------------------------------' || CHR(13) || CHR(10));
 end get_table_differences;
 
 BEGIN
