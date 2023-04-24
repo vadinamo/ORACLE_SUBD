@@ -2,6 +2,8 @@ ALTER SESSION SET "_ORACLE_SCRIPT"= TRUE; --switch to old mode
 CREATE USER dev IDENTIFIED BY dev; --dev user creating
 GRANT ALL PRIVILEGES TO dev; --grant rights
 
+DROP TABLE DEV.TestTable1;
+DROP TABLE DEV.TestTable;
 CREATE TABLE DEV.TestTable(
     id NUMBER,
     val NUMBER,
@@ -12,6 +14,9 @@ CREATE TABLE DEV.TestTable1(
     id NUMBER,
     val NUMBER
 );
+
+CREATE INDEX DEV.TestIndex1 ON DEV.TestTable (val);
+DROP INDEX DEV.TestIndex1;
 
 CREATE OR REPLACE PROCEDURE DEV.TestProcedure1(id1 NUMBER, id2 NUMBER) AS
     val1 NUMBER;
@@ -44,12 +49,14 @@ BEGIN
     END IF;
 END;
 
-CREATE OR REPLACE FUNCTION DEV.TestFunction1(id1 NUMBER, id2 NUMBER) AS
+CREATE OR REPLACE FUNCTION DEV.TestFunction1(id1 NUMBER, id2 NUMBER)
+    RETURN BOOLEAN
+IS
     val1 NUMBER;
     val2 NUMBER;
 BEGIN
     SELECT val INTO val1 FROM DEV.TestTable WHERE id = id1;
     SELECT val INTO val2 FROM DEV.TestTable WHERE id = id2;
 
-    RETURN val1 <> val2;
+    RETURN val1 = val2;
 END TestFunction1;
