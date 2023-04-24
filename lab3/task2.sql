@@ -3,8 +3,8 @@ CREATE OR REPLACE PROCEDURE get_procedure_differences(dev_schema_name VARCHAR2, 
     dev_procedure_text CLOB;
     prod_procedure_text CLOB;
     CURSOR dev_schema_procedures is
-            SELECT DISTINCT NAME FROM ALL_SOURCE
-            WHERE ALL_SOURCE.TYPE = 'PROCEDURE' AND OWNER = dev_schema_name;
+        SELECT DISTINCT NAME FROM ALL_SOURCE
+        WHERE ALL_SOURCE.TYPE = 'PROCEDURE' AND OWNER = dev_schema_name;
 BEGIN
     DBMS_OUTPUT.PUT_LINE(DASHES('PROCEDURES FROM ' || dev_schema_name || ' THAT ARE NOT IN ' || prod_schema_name || ':'));
     FOR dev_procedure in dev_schema_procedures LOOP
@@ -35,13 +35,13 @@ BEGIN
         WHERE OWNER = dev_schema_name
             AND ALL_SOURCE.TYPE = 'PROCEDURE'
             AND NAME = dev_procedure.NAME
-            AND LINE <> 1;
+            AND LINE > 1;
 
         SELECT LISTAGG(TEXT, CHR(10)) INTO prod_procedure_text FROM ALL_SOURCE
         WHERE OWNER = prod_schema_name
             AND ALL_SOURCE.TYPE = 'PROCEDURE'
             AND NAME = dev_procedure.NAME
-            AND LINE <> 1;
+            AND LINE > 1;
 
         dev_procedure_text := REPLACE(dev_procedure_text, dev_schema_name, '');
         prod_procedure_text := REPLACE(prod_procedure_text, prod_schema_name, '');
@@ -96,13 +96,13 @@ BEGIN
         WHERE OWNER = dev_schema_name
             AND ALL_SOURCE.TYPE = 'FUNCTION'
             AND NAME = dev_function.NAME
-            AND LINE <> 1;
+            AND LINE > 1;
 
         SELECT LISTAGG(TEXT, CHR(10)) INTO prod_function_text FROM ALL_SOURCE
         WHERE OWNER = prod_schema_name
             AND ALL_SOURCE.TYPE = 'FUNCTION'
             AND NAME = dev_function.NAME
-            AND LINE <> 1;
+            AND LINE > 1;
 
         dev_function_text := REPLACE(dev_function_text, dev_schema_name, '');
         prod_function_text := REPLACE(prod_function_text, prod_schema_name, '');
@@ -191,13 +191,13 @@ BEGIN
         WHERE OWNER = dev_schema_name
             AND ALL_SOURCE.TYPE = 'PACKAGE'
             AND NAME = dev_package.NAME
-            AND LINE <> 1;
+            AND LINE > 1;
 
         SELECT LISTAGG(TEXT, CHR(10)) INTO dev_package_text FROM ALL_SOURCE
         WHERE OWNER = prod_schema_name
             AND ALL_SOURCE.TYPE = 'PACKAGE'
             AND NAME = dev_package.NAME
-            AND LINE <> 1;
+            AND LINE > 1;
 
         IF dev_package_text <> prod_package_text THEN
             DBMS_OUTPUT.PUT_LINE(dev_package.NAME);

@@ -1,3 +1,6 @@
+GRANT DBA TO SYSTEM;
+GRANT ALL PRIVILEGES TO SYSTEM; --grant rights
+
 -- CREATE OR REPLACE FUNCTION SELECT_ARGUMENTS(schema_name varchar2, entity_name varchar2)
 --     RETURN SYS_REFCURSOR
 -- IS
@@ -37,3 +40,30 @@ BEGIN
     after_count := CEIL((50 - LENGTH(input_string)) / 2);
     RETURN RPAD('-', before_count, '-') || input_string || LPAD('-', after_count, '-');
 END DASHES;
+
+CREATE OR REPLACE FUNCTION GET_ARGUMENTS(schema_name varchar2, entity_name varchar2)
+    RETURN VARCHAR2
+IS
+    arguments CLOB;
+BEGIN
+    SELECT LISTAGG(ALL_ARGUMENTS.ARGUMENT_NAME || ' ' || ALL_ARGUMENTS.DATA_TYPE, ', ') INTO arguments
+    FROM ALL_ARGUMENTS
+        WHERE ALL_ARGUMENTS.OWNER = schema_name
+            AND ALL_ARGUMENTS.OBJECT_NAME = entity_name;
+
+    RETURN arguments;
+end GET_ARGUMENTS;
+
+CREATE OR REPLACE FUNCTION GET_CODE(schema_name varchar2, entity_name varchar2, entity_type varchar2)
+    RETURN VARCHAR2
+IS
+    code CLOB;
+BEGIN
+    SELECT LISTAGG(TEXT) INTO code FROM ALL_SOURCE
+    WHERE OWNER = schema_name
+        AND TYPE = entity_type
+        AND NAME = entity_name
+        AND line > 1;
+
+    RETURN code;
+END GET_CODE;
