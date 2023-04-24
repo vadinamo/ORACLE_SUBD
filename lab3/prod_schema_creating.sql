@@ -20,7 +20,7 @@ BEGIN
 
     IF val1 <> val2 THEN
         DBMS_OUTPUT.PUT_LINE('VALUES ARE DIFFERENT');
-    end if;
+    END IF;
 END TestProcedure1;
 
 CREATE OR REPLACE PROCEDURE PROD.TestProcedure2(id1 NUMBER) AS

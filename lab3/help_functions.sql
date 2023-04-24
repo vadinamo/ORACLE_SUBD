@@ -61,7 +61,7 @@ IS
 BEGIN
     SELECT LISTAGG(TEXT) INTO code FROM ALL_SOURCE
     WHERE OWNER = schema_name
-        AND TYPE = entity_type
+        AND ALL_SOURCE.TYPE = entity_type
         AND NAME = entity_name
         AND line > 1;
 
