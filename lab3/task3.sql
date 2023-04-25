@@ -50,8 +50,15 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE(code);
 END create_index;
 
+CREATE OR REPLACE PROCEDURE create_package(dev_schema_name VARCHAR2, prod_schema_name VARCHAR2, package_name VARCHAR2) AS
+    code CLOB;
+BEGIN
+    code := 'CREATE OR REPLACE PACKAGE ' || prod_schema_name || '.' || package_name || ' AS ' || CHR(10) ||
+            GET_CODE(dev_schema_name, package_name, 'PACKAGE');
+END create_package;
+
 BEGIN
 --     create_procedure('DEV', 'PROD', 'TESTPROCEDURE1');
 --     create_function('DEV', 'PROD', 'TESTFUNCTION1');
-    create_index('DEV', 'PROD', 'TESTINDEX1');
+--     create_index('DEV', 'PROD', 'TESTINDEX1');
 END;
