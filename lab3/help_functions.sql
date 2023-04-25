@@ -42,7 +42,7 @@ BEGIN
 END DASHES;
 
 CREATE OR REPLACE FUNCTION GET_ARGUMENTS(schema_name varchar2, entity_name varchar2)
-    RETURN VARCHAR2
+    RETURN CLOB
 IS
     arguments CLOB;
 BEGIN
@@ -55,7 +55,7 @@ BEGIN
 end GET_ARGUMENTS;
 
 CREATE OR REPLACE FUNCTION GET_CODE(schema_name varchar2, entity_name varchar2, entity_type varchar2)
-    RETURN VARCHAR2
+    RETURN CLOB
 IS
     code CLOB;
 BEGIN
@@ -67,3 +67,27 @@ BEGIN
 
     RETURN code;
 END GET_CODE;
+
+CREATE OR REPLACE FUNCTION GET_TABLE(schema_name varchar2, entity_name varchar2)
+    RETURN CLOB
+IS
+    table_name CLOB;
+BEGIN
+    SELECT LISTAGG(TABLE_NAME) INTO table_name
+    FROM ALL_INDEXES
+    WHERE OWNER = schema_name
+        AND INDEX_NAME = entity_name;
+    RETURN table_name;
+END GET_TABLE;
+
+CREATE OR REPLACE FUNCTION GET_INDEX_COLUMNS(schema_name varchar2, entity_name varchar2)
+    RETURN CLOB
+IS
+    index_columns CLOB;
+BEGIN
+    SELECT LISTAGG(COLUMN_NAME, ', ') INTO index_columns
+    FROM ALL_IND_COLUMNS
+    WHERE INDEX_OWNER = schema_name
+        AND INDEX_NAME = entity_name;
+    RETURN index_columns;
+END GET_INDEX_COLUMNS;

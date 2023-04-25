@@ -41,9 +41,17 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE(code);
 END create_function;
 
-
+CREATE OR REPLACE PROCEDURE create_index(dev_schema_name VARCHAR2, prod_schema_name VARCHAR2, index_name VARCHAR2) AS
+    code CLOB;
+BEGIN
+    code := 'CREATE INDEX ' || prod_schema_name || '.' || index_name ||
+            ' ON ' || prod_schema_name || '.' || GET_TABLE(dev_schema_name, index_name) ||
+            '(' || GET_INDEX_COLUMNS(dev_schema_name, index_name) || ')';
+    DBMS_OUTPUT.PUT_LINE(code);
+END create_index;
 
 BEGIN
 --     create_procedure('DEV', 'PROD', 'TESTPROCEDURE1');
-    create_function('DEV', 'PROD', 'TESTFUNCTION1');
+--     create_function('DEV', 'PROD', 'TESTFUNCTION1');
+    create_index('DEV', 'PROD', 'TESTINDEX1');
 END;
