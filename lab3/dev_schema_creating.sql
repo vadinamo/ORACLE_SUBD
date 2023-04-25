@@ -5,7 +5,7 @@ GRANT ALL PRIVILEGES TO dev; --grant rights
 DROP TABLE DEV.TestTable1;
 DROP TABLE DEV.TestTable;
 CREATE TABLE DEV.TestTable(
-    id NUMBER,
+    id NUMBER UNIQUE,
     val NUMBER,
     CONSTRAINT id_unique UNIQUE (id)
 );
