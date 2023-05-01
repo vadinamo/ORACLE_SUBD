@@ -11,6 +11,7 @@ BEGIN
     code := code || ' AS' || CHR(10) || GET_CODE(dev_schema_name, procedure_name, 'PROCEDURE');
 
     DBMS_OUTPUT.PUT_LINE(code);
+    EXECUTE IMMEDIATE code;
 END create_procedure;
 
 CREATE OR REPLACE PROCEDURE create_function(dev_schema_name VARCHAR2, prod_schema_name VARCHAR2, function_name VARCHAR2) AS
@@ -39,6 +40,7 @@ BEGIN
     code := code || chr(10) || GET_CODE(dev_schema_name, function_name, 'FUNCTION');
 
     DBMS_OUTPUT.PUT_LINE(code);
+    EXECUTE IMMEDIATE code;
 END create_function;
 
 CREATE OR REPLACE PROCEDURE create_index(dev_schema_name VARCHAR2, prod_schema_name VARCHAR2, index_name VARCHAR2) AS
@@ -48,6 +50,7 @@ BEGIN
             ' ON ' || prod_schema_name || '.' || GET_TABLE(dev_schema_name, index_name) ||
             '(' || GET_INDEX_COLUMNS(dev_schema_name, index_name) || ')';
     DBMS_OUTPUT.PUT_LINE(code);
+    EXECUTE IMMEDIATE code;
 END create_index;
 
 CREATE OR REPLACE PROCEDURE create_package(dev_schema_name VARCHAR2, prod_schema_name VARCHAR2, package_name VARCHAR2) AS
@@ -55,6 +58,8 @@ CREATE OR REPLACE PROCEDURE create_package(dev_schema_name VARCHAR2, prod_schema
 BEGIN
     code := 'CREATE OR REPLACE PACKAGE ' || prod_schema_name || '.' || package_name || ' AS ' || CHR(10) ||
             GET_CODE(dev_schema_name, package_name, 'PACKAGE');
+    DBMS_OUTPUT.PUT_LINE(code);
+    EXECUTE IMMEDIATE code;
 END create_package;
 
 CREATE OR REPLACE PROCEDURE create_table(dev_schema_name VARCHAR2, prod_schema_name VARCHAR2, table_name VARCHAR2) AS
@@ -104,11 +109,126 @@ BEGIN
 
     code := code || ')';
     DBMS_OUTPUT.PUT_LINE(code);
+    EXECUTE IMMEDIATE code;
 END create_table;
 
+CREATE OR REPLACE PROCEDURE REMOVE_EXTRA_FROM_PROD(dev_schema_name VARCHAR2, prod_schema_name VARCHAR2) AS
+    CURSOR dev_schema_procedures IS
+        SELECT DISTINCT NAME FROM ALL_SOURCE
+            WHERE OWNER = prod_schema_name
+                AND ALL_SOURCE.TYPE = 'PROCEDURE'
+        MINUS
+        SELECT DISTINCT NAME FROM ALL_SOURCE
+            WHERE OWNER = dev_schema_name
+                AND ALL_SOURCE.TYPE = 'PROCEDURE';
+
+    CURSOR dev_schema_functions IS
+        SELECT DISTINCT NAME FROM ALL_SOURCE
+            WHERE OWNER = prod_schema_name
+                AND ALL_SOURCE.TYPE = 'FUNCTION'
+        MINUS
+        SELECT DISTINCT NAME FROM ALL_SOURCE
+            WHERE OWNER = dev_schema_name
+                AND ALL_SOURCE.TYPE = 'FUNCTION';
+
+    CURSOR dev_schema_indexes IS
+        SELECT INDEX_NAME FROM ALL_INDEXES
+            WHERE OWNER = prod_schema_name
+        MINUS
+        SELECT INDEX_NAME FROM ALL_INDEXES
+            WHERE OWNER = dev_schema_name;
+
+    CURSOR dev_schema_packages IS
+        SELECT DISTINCT NAME FROM ALL_SOURCE
+            WHERE OWNER = prod_schema_name
+                AND ALL_SOURCE.TYPE = 'PACKAGE'
+        MINUS
+        SELECT DISTINCT NAME FROM ALL_SOURCE
+            WHERE OWNER = dev_schema_name
+                AND ALL_SOURCE.TYPE = 'PACKAGE';
+
+    CURSOR dev_schema_tables IS
+        SELECT TABLE_NAME FROM ALL_TABLES
+            WHERE OWNER = prod_schema_name
+        MINUS
+        SELECT TABLE_NAME FROM ALL_TABLES
+            WHERE OWNER = dev_schema_name;
 BEGIN
---     create_procedure('DEV', 'PROD', 'TESTPROCEDURE1');
---     create_function('DEV', 'PROD', 'TESTFUNCTION1');
---     create_index('DEV', 'PROD', 'TESTINDEX1');
-    CREATE_TABLE('DEV', 'PROD', 'TESTTABLE1');
+    FOR dev_procedure in dev_schema_procedures LOOP
+        DBMS_OUTPUT.PUT_LINE('REMOVING PROCEDURE ' || dev_procedure.NAME);
+        EXECUTE IMMEDIATE 'DROP PROCEDURE ' || prod_schema_name || '.' || dev_procedure.NAME;
+    END LOOP;
+
+    FOR dev_function in dev_schema_functions LOOP
+        DBMS_OUTPUT.PUT_LINE('REMOVING FUNCTION ' || dev_function.NAME);
+        EXECUTE IMMEDIATE 'DROP FUNCTION ' || prod_schema_name || '.' || dev_function.NAME;
+    END LOOP;
+
+    FOR dev_index in dev_schema_indexes LOOP
+        DBMS_OUTPUT.PUT_LINE('REMOVING INDEX ' || dev_index.INDEX_NAME);
+        EXECUTE IMMEDIATE 'DROP INDEX ' || prod_schema_name || '.' || dev_index.INDEX_NAME;
+    END LOOP;
+
+    FOR dev_package in dev_schema_packages LOOP
+        DBMS_OUTPUT.PUT_LINE('REMOVING PACKAGE ' || dev_package.NAME);
+        EXECUTE IMMEDIATE 'DROP PACKAGE ' || prod_schema_name || '.' || dev_package.NAME;
+    END LOOP;
+
+    FOR dev_table in dev_schema_tables LOOP
+        DBMS_OUTPUT.PUT_LINE('REMOVING TABLE ' || dev_table.TABLE_NAME);
+        EXECUTE IMMEDIATE 'DROP TABLE ' || prod_schema_name || '.' || dev_table.TABLE_NAME;
+    END LOOP;
+END REMOVE_EXTRA_FROM_PROD;
+
+CREATE TABLE cycle_check
+(
+    name VARCHAR2(40),
+    num NUMBER
+);
+
+CREATE OR REPLACE PROCEDURE CHECK_CYCLE(dev_schema_name VARCHAR2) AS
+    amount NUMBER;
+    CURSOR tab_all IS
+    SELECT DISTINCT ALL_CONS_COLUMNS.COLUMN_NAME, ALL_CONS_COLUMNS.CONSTRAINT_NAME,
+        ALL_CONSTRAINTS.CONSTRAINT_TYPE, ALL_IND_COLUMNS.TABLE_NAME tab1, ALL_CONSTRAINTS.TABLE_NAME tab2
+            FROM ALL_CONS_COLUMNS
+            JOIN ALL_CONSTRAINTS
+            ON ALL_CONSTRAINTS.TABLE_NAME = ALL_CONS_COLUMNS.TABLE_NAME
+            LEFT JOIN ALL_IND_COLUMNS
+            ON ALL_CONSTRAINTS.R_CONSTRAINT_NAME = ALL_IND_COLUMNS.INDEX_NAME
+            WHERE ALL_CONSTRAINTS.OWNER = dev_schema_name
+                AND NOT REGEXP_LIKE (ALL_CONS_COLUMNS.CONSTRAINT_NAME)
+                AND ALL_CONSTRAINTS.CONSTRAINT_TYPE = 'R'
+                AND SUBSTR(ALL_CONS_COLUMNS.CONSTRAINT_NAME, 1, 1) = 'F';
+BEGIN
+    EXECUTE IMMEDIATE 'DELETE FROM cycle_check';
+    FOR tab IN tab_all
+    LOOP
+        EXECUTE IMMEDIATE 'INSERT INTO CYCLE_CHECK VALUES(''' || tab.tab1 || ''', ' || '1)';
+        EXECUTE IMMEDIATE 'INSERT INTO CYCLE_CHECK VALUES(''' || tab.tab2 || ''', ' || '-1)';
+        SELECT COUNT(*) INTO amount FROM
+            (SELECT name, sum(num) sum FROM cycle_check
+                GROUP BY name)
+            WHERE sum <> 0;
+        IF amount = 0 THEN
+            RAISE_APPLICATION_ERROR(-20343,'CYCLE IN TABLES');
+        END IF;
+    END LOOP;
+END;
+
+DECLARE
+    dev_schema_name VARCHAR2(32767);
+    prod_schema_name VARCHAR2(32767);
+BEGIN
+    dev_schema_name := 'DEV';
+    prod_schema_name := 'PROD';
+    REMOVE_EXTRA_FROM_PROD(dev_schema_name, prod_schema_name);
+
+    GET_TABLE_DIFFERENCES(dev_schema_name, prod_schema_name);
+    CHECK_CYCLE(dev_schema_name);
+
+    GET_PROCEDURE_DIFFERENCES(dev_schema_name, prod_schema_name);
+    GET_FUNCTION_DIFFERENCES(dev_schema_name, prod_schema_name);
+    GET_INDEX_DIFFERENCES(dev_schema_name, prod_schema_name);
+    GET_PACKAGE_DIFFERENCES(dev_schema_name, prod_schema_name);
 END;

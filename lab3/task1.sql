@@ -63,6 +63,7 @@ BEGIN
 
         IF columns_count <> 0 OR constraints_count <> 0 THEN
             DBMS_OUTPUT.PUT_LINE(dev_table.TABLE_NAME);
+            CREATE_TABLE(dev_schema_name, prod_schema_name, dev_table.TABLE_NAME);
             IF columns_count <> 0 THEN
                 DBMS_OUTPUT.PUT_LINE(CHR(9) || ' COLUMNS ');
             END IF;
@@ -74,6 +75,6 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('--------------------------------------------------' || CHR(13) || CHR(10));
 end get_table_differences;
 
-BEGIN
-    get_table_differences('DEV','PROD');
-END;
+-- BEGIN
+--     get_table_differences('DEV','PROD');
+-- END;

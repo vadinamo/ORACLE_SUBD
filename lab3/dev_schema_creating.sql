@@ -9,6 +9,11 @@ CREATE TABLE DEV.TestTable(
     val NUMBER,
     CONSTRAINT id_unique UNIQUE (id)
 );
+ALTER TABLE DEV.TestTable ADD CONSTRAINT id_unique UNIQUE (id);
+ALTER TABLE DEV.TestTable DROP CONSTRAINT id_unique;
+
+select * from ALL_CONSTRAINTS where OWNER = 'DEV'
+
 
 CREATE TABLE DEV.TestTable1(
     id NUMBER,
@@ -60,3 +65,51 @@ BEGIN
 
     RETURN val1 = val2;
 END TestFunction1;
+
+
+
+
+
+
+
+CREATE TABLE DEV.table1 (
+   id NUMBER PRIMARY KEY,
+   val1 NUMBER,
+   ref_table NUMBER
+);
+
+-- Создаем вторую таблицу
+CREATE TABLE DEV.table2 (
+   id NUMBER PRIMARY KEY,
+   val2 NUMBER,
+   ref_table NUMBER
+);
+
+-- Создаем третью таблицу
+CREATE TABLE DEV.table3 (
+   id NUMBER PRIMARY KEY,
+   val3 NUMBER,
+   ref_table NUMBER
+);
+
+ALTER TABLE dev.table1 MODIFY ref_table REFERENCES dev.table2(id);
+ALTER TABLE dev.table2 MODIFY ref_table REFERENCES dev.table1(id);
+ALTER TABLE dev.table3 MODIFY ref_table REFERENCES dev.table1(id);
+
+DROP TABLE DEV.table1;
+DROP TABLE DEV.table2;
+DROP TABLE DEV.table3;
+
+SELECT constraint_name
+FROM all_constraints
+WHERE owner = 'DEV' AND table_name = 'TABLE1' AND constraint_type = 'R';
+SELECT constraint_name
+FROM all_constraints
+WHERE owner = 'DEV' AND table_name = 'TABLE2' AND constraint_type = 'R';
+SELECT constraint_name
+FROM all_constraints
+WHERE owner = 'DEV' AND table_name = 'TABLE3' AND constraint_type = 'R';
+
+ALTER TABLE dev.table1 DROP CONSTRAINT SYS_C008333;
+ALTER TABLE dev.table2 DROP CONSTRAINT SYS_C008333;
+ALTER TABLE dev.table3 DROP CONSTRAINT SYS_C008333;

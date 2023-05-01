@@ -48,6 +48,7 @@ BEGIN
 
         IF arguments_count <> 0 OR dev_procedure_text <> prod_procedure_text THEN
             DBMS_OUTPUT.PUT_LINE(dev_procedure.NAME);
+            CREATE_PROCEDURE(dev_schema_name, prod_schema_name, dev_procedure.NAME);
             IF arguments_count <> 0 THEN
                 DBMS_OUTPUT.PUT_LINE(CHR(9) || 'ARGUMENTS');
             END IF;
@@ -109,6 +110,7 @@ BEGIN
 
         IF arguments_count <> 0 OR dev_function_text <> prod_function_text THEN
             DBMS_OUTPUT.PUT_LINE(dev_function.NAME);
+            CREATE_FUNCTION(dev_schema_name, prod_schema_name, dev_function.NAME);
             IF arguments_count <> 0 THEN
                 DBMS_OUTPUT.PUT_LINE(CHR(9) || 'ARGUMENTS');
             END IF;
@@ -173,6 +175,7 @@ BEGIN
 
         IF index_count <> 0 THEN
             DBMS_OUTPUT.PUT_LINE(dev_index.INDEX_NAME);
+            CREATE_INDEX(dev_schema_name, prod_schema_name, dev_index.INDEX_NAME);
         END IF;
     END LOOP;
     DBMS_OUTPUT.PUT_LINE('--------------------------------------------------');
@@ -201,20 +204,21 @@ BEGIN
 
         IF dev_package_text <> prod_package_text THEN
             DBMS_OUTPUT.PUT_LINE(dev_package.NAME);
+            CREATE_PACKAGE(dev_schema_name, prod_schema_name, dev_package.NAME);
         END IF;
     END LOOP;
     DBMS_OUTPUT.PUT_LINE('--------------------------------------------------');
 END get_package_differences;
 
-DECLARE
-    dev_schema_name VARCHAR2(32767);
-    prod_schema_name VARCHAR2(32767);
-BEGIN
-    dev_schema_name := 'DEV';
-    prod_schema_name := 'PROD';
-    get_table_differences(dev_schema_name, prod_schema_name);
-    get_procedure_differences(dev_schema_name, prod_schema_name);
-    get_function_differences(dev_schema_name, prod_schema_name);
-    get_index_differences(dev_schema_name, prod_schema_name);
-    get_package_differences(dev_schema_name, prod_schema_name);
-END;
+-- DECLARE
+--     dev_schema_name VARCHAR2(32767);
+--     prod_schema_name VARCHAR2(32767);
+-- BEGIN
+--     dev_schema_name := 'DEV';
+--     prod_schema_name := 'PROD';
+--     get_table_differences(dev_schema_name, prod_schema_name);
+--     get_procedure_differences(dev_schema_name, prod_schema_name);
+--     get_function_differences(dev_schema_name, prod_schema_name);
+--     get_index_differences(dev_schema_name, prod_schema_name);
+--     get_package_differences(dev_schema_name, prod_schema_name);
+-- END;
