@@ -1,5 +1,17 @@
 {
   "type": "SELECT",
-  "columns": ['Houses.ADDRESS', 'Citizens.NAME'],
-  "tables": ['Houses', 'Citizens']
+  "columns": ["Citizens.name"],
+  "tables": ["Citizens"],
+  "condition": {
+    "type": "operation",
+    "operation": "IS NOT",
+    "left": {
+      "type": "operand",
+      "operand": "Citizens.house"
+    },
+    "right": {
+      "type": "operand",
+      "operand": "NULL"
+    }
+  }
 }
