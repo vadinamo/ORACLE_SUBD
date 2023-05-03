@@ -1,0 +1,30 @@
+{
+  "type": "SELECT",
+  "columns": ["Citizens.name"],
+  "tables": ["Citizens"],
+  "condition": {
+    "type": "unary",
+    "operation": "NOT IN",
+    "left": {
+      "type": "operand",
+      "operand": "Citizens.house"
+    },
+    "right": {
+      "type": "SELECT",
+      "columns": ["Houses.id"],
+      "tables": ["Houses"],
+      "condition": {
+        "type": "operation",
+        "operation": "<>",
+        "left": {
+          "type": "operand",
+          "operand" : "Houses.address"
+        },
+        "right": {
+          "type": "operand",
+          "operand" : "'1600 Amphitheatre Parkway, Mountain View'"
+        }
+      }
+    }
+  }
+}
