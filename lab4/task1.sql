@@ -18,7 +18,6 @@ BEGIN
     END LOOP;
 
     RESULT := RESULT || ' FROM ';
-
     JSON_OBJECT_ARRAY := JSON_FILE.GET_ARRAY('tables');
     JSON_OBJECT_ARRAY_SIZE := JSON_OBJECT_ARRAY.GET_SIZE() - 1;
     FOR i IN 0..JSON_OBJECT_ARRAY_SIZE LOOP
@@ -27,6 +26,16 @@ BEGIN
             RESULT := RESULT || ', ';
         END IF;
     END LOOP;
+
+    JSON_OBJECT_ARRAY := JSON_FILE.GET_ARRAY('joins');
+    IF JSON_OBJECT_ARRAY IS NOT NULL THEN
+        JSON_OBJECT_ARRAY_SIZE := JSON_OBJECT_ARRAY.GET_SIZE() - 1;
+        FOR i IN 0..JSON_OBJECT_ARRAY_SIZE LOOP
+            JSON_CONDITION_OBJECT := TREAT(JSON_OBJECT_ARRAY.GET(I) AS JSON_OBJECT_T);
+            RESULT := RESULT || ' ' || JSON_CONDITION_OBJECT.GET_STRING('type') || ' JOIN ' ||
+                      JSON_CONDITION_OBJECT.GET_STRING('table') || ' ON ' || parse_condition(TREAT(JSON_CONDITION_OBJECT.GET('condition') AS JSON_OBJECT_T));
+        END LOOP;
+    END IF;
 
     JSON_CONDITION_OBJECT := TREAT(JSON_FILE.GET('condition') AS JSON_OBJECT_T);
     IF JSON_CONDITION_OBJECT IS NOT NULL THEN
@@ -55,8 +64,26 @@ BEGIN
     JSON_TEXT := '
 {
   "type": "SELECT",
-  "columns": ["Citizens.name"],
+  "columns": ["Citizens.name", "Houses.address"],
   "tables": ["Citizens"],
+  "joins": [
+    {
+      "type": "LEFT",
+      "table": "Houses",
+      "condition": {
+        "type": "operation",
+        "operation": "=",
+        "left": {
+          "type": "operand",
+          "operand": "Citizens.house"
+        },
+        "right": {
+          "type": "operand",
+          "operand": "Houses.id"
+        }
+      }
+    }
+  ],
   "condition": {
     "type": "operation",
     "operation": "IS NOT",

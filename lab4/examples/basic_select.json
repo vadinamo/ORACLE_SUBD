@@ -1,7 +1,25 @@
 {
   "type": "SELECT",
-  "columns": ["Citizens.name"],
+  "columns": ["Citizens.name", "Houses.address"],
   "tables": ["Citizens"],
+  "joins": [
+    {
+      "type": "LEFT",
+      "table": "Houses",
+      "condition": {
+        "type": "operation",
+        "operation": "=",
+        "left": {
+          "type": "operand",
+          "operand": "Citizens.house"
+        },
+        "right": {
+          "type": "operand",
+          "operand": "Houses.id"
+        }
+      }
+    }
+  ],
   "condition": {
     "type": "operation",
     "operation": "IS NOT",
