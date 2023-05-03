@@ -1,0 +1,5 @@
+{
+  "type": "SELECT",
+  "columns": ['Houses.ADDRESS', 'Citizens.NAME'],
+  "tables": ['Houses', 'Citizens']
+}
