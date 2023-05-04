@@ -1,0 +1,20 @@
+{
+  "type": "UPDATE",
+  "table": "Citizens",
+  "values": [{
+    "name": "Citizens.house",
+    "value": "NULL"
+  }],
+  "condition": {
+    "type": "operation",
+    "operation": "=",
+    "left": {
+      "type": "operand",
+      "operand": "Citizens.name"
+    },
+    "right": {
+      "type": "operand",
+      "operand": "'John Davis Jr.'"
+    }
+  }
+}

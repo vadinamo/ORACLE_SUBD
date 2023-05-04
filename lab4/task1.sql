@@ -42,6 +42,7 @@ BEGIN
         IF JSON_CONDITION_OBJECT IS NOT NULL THEN
             RESULT := RESULT || ' WHERE ' || parse_expression(JSON_CONDITION_OBJECT);
         END IF;
+
     ELSIF JSON_FILE.GET_STRING('type') = 'INSERT' THEN
         RESULT := 'INSERT INTO ' || JSON_FILE.GET_STRING('table') || ' ';
         JSON_OBJECT_ARRAY := JSON_FILE.GET_ARRAY('names');
@@ -67,6 +68,24 @@ BEGIN
             END IF;
         END LOOP;
         RESULT := RESULT || ')';
+
+    ELSIF JSON_FILE.GET_STRING('type') = 'UPDATE' THEN
+        RESULT := 'UPDATE ' || JSON_FILE.GET_STRING('table') || ' SET ';
+        JSON_OBJECT_ARRAY := JSON_FILE.GET_ARRAY('values');
+        JSON_OBJECT_ARRAY_SIZE := JSON_OBJECT_ARRAY.GET_SIZE() - 1;
+        FOR i IN 0..JSON_OBJECT_ARRAY_SIZE LOOP
+            JSON_CONDITION_OBJECT := TREAT(JSON_OBJECT_ARRAY.GET(i) AS JSON_OBJECT_T);
+            RESULT := RESULT || JSON_CONDITION_OBJECT.GET_STRING('name') || ' = ' || JSON_CONDITION_OBJECT.GET_STRING('value');
+            IF i < JSON_OBJECT_ARRAY_SIZE THEN
+                RESULT := RESULT || ', ';
+            END IF;
+        END LOOP;
+
+        JSON_CONDITION_OBJECT := TREAT(JSON_FILE.GET('condition') AS JSON_OBJECT_T);
+        IF JSON_CONDITION_OBJECT IS NOT NULL THEN
+            RESULT := RESULT || ' WHERE ' || parse_expression(JSON_CONDITION_OBJECT);
+        END IF;
+
     ELSIF JSON_FILE.GET_STRING('type') = 'operation' THEN
         RESULT := parse_expression(TREAT(JSON_FILE.GET('left') AS JSON_OBJECT_T)) ||
                   ' ' || JSON_FILE.GET_STRING('operation') || ' ' ||
@@ -87,11 +106,27 @@ DECLARE
 BEGIN
     JSON_TEXT := '
 {
-  "type": "INSERT",
+  "type": "UPDATE",
   "table": "Citizens",
-  "names": ["id", "name", "house"],
-  "values": [6, "''John Davis Jr.''", 1]
+  "values": [{
+    "name": "Citizens.house",
+    "value": "NULL"
+  }],
+  "condition": {
+    "type": "operation",
+    "operation": "=",
+    "left": {
+      "type": "operand",
+      "operand": "Citizens.name"
+    },
+    "right": {
+      "type": "operand",
+      "operand": "''John Davis Jr.''"
+    }
+  }
 }
 ';
     DBMS_OUTPUT.PUT_LINE(parse_expression(JSON_OBJECT_T.PARSE(JSON_TEXT)));
 END;
+
+SELECT * FROM CITIZENS
