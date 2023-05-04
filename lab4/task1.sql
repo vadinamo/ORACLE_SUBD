@@ -86,6 +86,13 @@ BEGIN
             RESULT := RESULT || ' WHERE ' || parse_expression(JSON_CONDITION_OBJECT);
         END IF;
 
+    ELSIF JSON_FILE.GET_STRING('type') = 'DELETE' THEN
+        RESULT := 'DELETE FROM ' || JSON_FILE.GET_STRING('table');
+        JSON_CONDITION_OBJECT := TREAT(JSON_FILE.GET('condition') AS JSON_OBJECT_T);
+        IF JSON_CONDITION_OBJECT IS NOT NULL THEN
+            RESULT := RESULT || ' WHERE ' || parse_expression(JSON_CONDITION_OBJECT);
+        END IF;
+
     ELSIF JSON_FILE.GET_STRING('type') = 'operation' THEN
         RESULT := parse_expression(TREAT(JSON_FILE.GET('left') AS JSON_OBJECT_T)) ||
                   ' ' || JSON_FILE.GET_STRING('operation') || ' ' ||
@@ -106,12 +113,8 @@ DECLARE
 BEGIN
     JSON_TEXT := '
 {
-  "type": "UPDATE",
+  "type": "DELETE",
   "table": "Citizens",
-  "values": [{
-    "name": "Citizens.house",
-    "value": "NULL"
-  }],
   "condition": {
     "type": "operation",
     "operation": "=",
@@ -128,5 +131,3 @@ BEGIN
 ';
     DBMS_OUTPUT.PUT_LINE(parse_expression(JSON_OBJECT_T.PARSE(JSON_TEXT)));
 END;
-
-SELECT * FROM CITIZENS

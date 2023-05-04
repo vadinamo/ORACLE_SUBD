@@ -1,0 +1,16 @@
+{
+  "type": "DELETE",
+  "table": "Citizens",
+  "condition": {
+    "type": "operation",
+    "operation": "=",
+    "left": {
+      "type": "operand",
+      "operand": "Citizens.name"
+    },
+    "right": {
+      "type": "operand",
+      "operand": "'John Davis Jr.'"
+    }
+  }
+}
