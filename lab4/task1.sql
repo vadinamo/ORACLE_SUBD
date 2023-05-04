@@ -42,7 +42,31 @@ BEGIN
         IF JSON_CONDITION_OBJECT IS NOT NULL THEN
             RESULT := RESULT || ' WHERE ' || parse_expression(JSON_CONDITION_OBJECT);
         END IF;
+    ELSIF JSON_FILE.GET_STRING('type') = 'INSERT' THEN
+        RESULT := 'INSERT INTO ' || JSON_FILE.GET_STRING('table') || ' ';
+        JSON_OBJECT_ARRAY := JSON_FILE.GET_ARRAY('names');
+        IF JSON_OBJECT_ARRAY IS NOT NULL THEN
+            JSON_OBJECT_ARRAY_SIZE := JSON_OBJECT_ARRAY.GET_SIZE() - 1;
+            RESULT := RESULT || '(';
+            FOR i IN 0..JSON_OBJECT_ARRAY_SIZE LOOP
+                RESULT := RESULT || JSON_OBJECT_ARRAY.GET_STRING(i);
+                IF i < JSON_OBJECT_ARRAY_SIZE THEN
+                    RESULT := RESULT || ', ';
+                END IF;
+            END LOOP;
+            RESULT := RESULT || ') ';
+        END IF;
 
+        RESULT := RESULT || 'VALUES (';
+        JSON_OBJECT_ARRAY := JSON_FILE.GET_ARRAY('values');
+        JSON_OBJECT_ARRAY_SIZE := JSON_OBJECT_ARRAY.GET_SIZE() - 1;
+        FOR i IN 0..JSON_OBJECT_ARRAY_SIZE LOOP
+            RESULT := RESULT || JSON_OBJECT_ARRAY.GET_STRING(i);
+            IF i < JSON_OBJECT_ARRAY_SIZE THEN
+                RESULT := RESULT || ', ';
+            END IF;
+        END LOOP;
+        RESULT := RESULT || ')';
     ELSIF JSON_FILE.GET_STRING('type') = 'operation' THEN
         RESULT := parse_expression(TREAT(JSON_FILE.GET('left') AS JSON_OBJECT_T)) ||
                   ' ' || JSON_FILE.GET_STRING('operation') || ' ' ||
@@ -63,34 +87,10 @@ DECLARE
 BEGIN
     JSON_TEXT := '
 {
-  "type": "SELECT",
-  "columns": ["Citizens.name"],
-  "tables": ["Citizens"],
-  "condition": {
-    "type": "unary",
-    "operation": "NOT IN",
-    "left": {
-      "type": "operand",
-      "operand": "Citizens.house"
-    },
-    "right": {
-      "type": "SELECT",
-      "columns": ["Houses.id"],
-      "tables": ["Houses"],
-      "condition": {
-        "type": "operation",
-        "operation": "<>",
-        "left": {
-          "type": "operand",
-          "operand" : "Houses.address"
-        },
-        "right": {
-          "type": "operand",
-          "operand" : "''1600 Amphitheatre Parkway, Mountain View''"
-        }
-      }
-    }
-  }
+  "type": "INSERT",
+  "table": "Citizens",
+  "names": ["id", "name", "house"],
+  "values": [6, "''John Davis Jr.''", 1]
 }
 ';
     DBMS_OUTPUT.PUT_LINE(parse_expression(JSON_OBJECT_T.PARSE(JSON_TEXT)));

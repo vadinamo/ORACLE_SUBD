@@ -1,0 +1,6 @@
+{
+  "type": "INSERT",
+  "table": "Citizens",
+  "names": ["id", "name", "house"],
+  "values": [6, "'John Davis Jr.'", 1]
+}
