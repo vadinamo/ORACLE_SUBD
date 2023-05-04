@@ -5,7 +5,7 @@
     {
       "name": "ID",
       "type": "NUMBER",
-      "constraints": ["UNIQUE"]
+      "constraints": ["UNIQUE", "PRIMARY KEY"]
     },
     {
       "name": "BRAND",

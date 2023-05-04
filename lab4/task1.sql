@@ -1,4 +1,5 @@
 CREATE OR REPLACE FUNCTION parse_expression(JSON_FILE JSON_OBJECT_T) RETURN CLOB IS
+    BUFFER CLOB;
     RESULT CLOB;
 
     JSON_OBJECT_ARRAY JSON_ARRAY_T;
@@ -109,6 +110,9 @@ BEGIN
                 JSON_CONSTRAINT_ARRAY_SIZE := JSON_CONSTRAINT_ARRAY.GET_SIZE() - 1;
                 FOR j IN 0..JSON_CONSTRAINT_ARRAY_SIZE LOOP
                     RESULT := RESULT || ' ' || JSON_CONSTRAINT_ARRAY.GET_STRING(j);
+                    IF JSON_CONSTRAINT_ARRAY.GET_STRING(j) = 'PRIMARY KEY' THEN
+                        BUFFER := BUFFER || create_pk_trigger(JSON_FILE.GET_STRING('table'), JSON_CONDITION_OBJECT.GET_STRING('name'));
+                    END IF;
                 END LOOP;
             END IF;
 
@@ -118,6 +122,9 @@ BEGIN
         END LOOP;
 
         RESULT := RESULT || ')';
+        IF BUFFER IS NOT NULL THEN
+            RESULT := RESULT || ';' || CHR(10) || BUFFER;
+        END IF;
 
     ELSIF JSON_FILE.GET_STRING('type') = 'DROP' THEN
         RESULT := 'DROP TABLE ' || JSON_FILE.GET_STRING('table');
@@ -137,13 +144,42 @@ BEGIN
     RETURN RESULT;
 END parse_expression;
 
+CREATE OR REPLACE FUNCTION create_pk_trigger(table_name VARCHAR2, column_name VARCHAR2) RETURN CLOB IS
+    SEQUENCE_NAME CLOB;
+    RESULT CLOB;
+BEGIN
+    SEQUENCE_NAME := table_name || '_' || column_name;
+    RESULT := 'CREATE SEQUENCE ' || SEQUENCE_NAME || ';' || CHR(10) ||
+              'CREATE OR REPLACE TRIGGER ' || table_name || '_' || 'insert' || '_' || column_name || CHR(10) ||
+              'BEFORE INSERT ON ' || table_name || ' FOR EACH ROW' || CHR(10) ||
+              'BEGIN' || CHR(10) ||
+              ':NEW.' || column_name || ' := ' || SEQUENCE_NAME || '.NEXTVAL;' || CHR(10) ||
+              'END ' || table_name || '_' || 'insert' || '_' || column_name || ';' || CHR(10);
+    RETURN RESULT;
+END create_pk_trigger;
+
 DECLARE
     JSON_TEXT CLOB;
 BEGIN
     JSON_TEXT := '
 {
-  "type": "DROP",
-  "table": "Cars"
+  "type": "CREATE",
+  "table": "Cars",
+  "columns": [
+    {
+      "name": "ID",
+      "type": "NUMBER",
+      "constraints": ["UNIQUE", "PRIMARY KEY"]
+    },
+    {
+      "name": "BRAND",
+      "type": "VARCHAR2(100)"
+    },
+    {
+      "name": "MODEL",
+      "type": "VARCHAR2(100)"
+    }
+  ]
 }
 ';
     DBMS_OUTPUT.PUT_LINE(parse_expression(JSON_OBJECT_T.PARSE(JSON_TEXT)));
