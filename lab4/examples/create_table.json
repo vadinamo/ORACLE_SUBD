@@ -1,0 +1,19 @@
+{
+  "type": "CREATE",
+  "table": "Cars",
+  "columns": [
+    {
+      "name": "ID",
+      "type": "NUMBER",
+      "constraints": ["UNIQUE"]
+    },
+    {
+      "name": "BRAND",
+      "type": "VARCHAR2(100)"
+    },
+    {
+      "name": "MODEL",
+      "type": "VARCHAR2(100)"
+    }
+  ]
+}

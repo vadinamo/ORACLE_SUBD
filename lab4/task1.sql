@@ -4,6 +4,9 @@ CREATE OR REPLACE FUNCTION parse_expression(JSON_FILE JSON_OBJECT_T) RETURN CLOB
     JSON_OBJECT_ARRAY JSON_ARRAY_T;
     JSON_OBJECT_ARRAY_SIZE NUMBER;
 
+    JSON_CONSTRAINT_ARRAY JSON_ARRAY_T;
+    JSON_CONSTRAINT_ARRAY_SIZE NUMBER;
+
     JSON_CONDITION_OBJECT JSON_OBJECT_T;
 BEGIN
     IF JSON_FILE.GET_STRING('type') = 'SELECT' THEN
@@ -93,6 +96,29 @@ BEGIN
             RESULT := RESULT || ' WHERE ' || parse_expression(JSON_CONDITION_OBJECT);
         END IF;
 
+    ELSIF JSON_FILE.GET_STRING('type') = 'CREATE' THEN
+        RESULT := 'CREATE TABLE ' || JSON_FILE.GET_STRING('table') || ' (';
+        JSON_OBJECT_ARRAY := JSON_FILE.GET_ARRAY('columns');
+        JSON_OBJECT_ARRAY_SIZE := JSON_OBJECT_ARRAY.GET_SIZE() - 1;
+        FOR i IN 0..JSON_OBJECT_ARRAY_SIZE LOOP
+            JSON_CONDITION_OBJECT := TREAT(JSON_OBJECT_ARRAY.GET(i) AS JSON_OBJECT_T);
+            RESULT := RESULT || JSON_CONDITION_OBJECT.GET_STRING('name') || ' ' || JSON_CONDITION_OBJECT.GET_STRING('type');
+
+            JSON_CONSTRAINT_ARRAY := JSON_CONDITION_OBJECT.GET_ARRAY('constraints');
+            IF JSON_CONSTRAINT_ARRAY IS NOT NULL THEN
+                JSON_CONSTRAINT_ARRAY_SIZE := JSON_CONSTRAINT_ARRAY.GET_SIZE() - 1;
+                FOR j IN 0..JSON_CONSTRAINT_ARRAY_SIZE LOOP
+                    RESULT := RESULT || ' ' || JSON_CONSTRAINT_ARRAY.GET_STRING(j);
+                END LOOP;
+            END IF;
+
+            IF i < JSON_OBJECT_ARRAY_SIZE THEN
+                RESULT := RESULT || ', ';
+            END IF;
+        END LOOP;
+
+        RESULT := RESULT || ')';
+
     ELSIF JSON_FILE.GET_STRING('type') = 'operation' THEN
         RESULT := parse_expression(TREAT(JSON_FILE.GET('left') AS JSON_OBJECT_T)) ||
                   ' ' || JSON_FILE.GET_STRING('operation') || ' ' ||
@@ -113,20 +139,23 @@ DECLARE
 BEGIN
     JSON_TEXT := '
 {
-  "type": "DELETE",
-  "table": "Citizens",
-  "condition": {
-    "type": "operation",
-    "operation": "=",
-    "left": {
-      "type": "operand",
-      "operand": "Citizens.name"
+  "type": "CREATE",
+  "table": "Cars",
+  "columns": [
+    {
+      "name": "ID",
+      "type": "NUMBER",
+      "constraints": ["UNIQUE"]
     },
-    "right": {
-      "type": "operand",
-      "operand": "''John Davis Jr.''"
+    {
+      "name": "BRAND",
+      "type": "VARCHAR2(100)"
+    },
+    {
+      "name": "MODEL",
+      "type": "VARCHAR2(100)"
     }
-  }
+  ]
 }
 ';
     DBMS_OUTPUT.PUT_LINE(parse_expression(JSON_OBJECT_T.PARSE(JSON_TEXT)));

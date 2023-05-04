@@ -9,6 +9,8 @@ CREATE TABLE Citizens (
     HOUSE NUMBER
 );
 
+ALTER TABLE Citizens ADD CAR NUMBER;
+
 INSERT INTO Houses VALUES (1, '1600 Amphitheatre Parkway, Mountain View');
 INSERT INTO Houses VALUES (2, '221B Baker Street, San Francisco');
 INSERT INTO Houses VALUES (3, '1600 Pennsylvania Avenue NW, Washington D.C.');
