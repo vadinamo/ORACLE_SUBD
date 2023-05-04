@@ -119,6 +119,9 @@ BEGIN
 
         RESULT := RESULT || ')';
 
+    ELSIF JSON_FILE.GET_STRING('type') = 'DROP' THEN
+        RESULT := 'DROP TABLE ' || JSON_FILE.GET_STRING('table');
+
     ELSIF JSON_FILE.GET_STRING('type') = 'operation' THEN
         RESULT := parse_expression(TREAT(JSON_FILE.GET('left') AS JSON_OBJECT_T)) ||
                   ' ' || JSON_FILE.GET_STRING('operation') || ' ' ||
@@ -139,23 +142,8 @@ DECLARE
 BEGIN
     JSON_TEXT := '
 {
-  "type": "CREATE",
-  "table": "Cars",
-  "columns": [
-    {
-      "name": "ID",
-      "type": "NUMBER",
-      "constraints": ["UNIQUE"]
-    },
-    {
-      "name": "BRAND",
-      "type": "VARCHAR2(100)"
-    },
-    {
-      "name": "MODEL",
-      "type": "VARCHAR2(100)"
-    }
-  ]
+  "type": "DROP",
+  "table": "Cars"
 }
 ';
     DBMS_OUTPUT.PUT_LINE(parse_expression(JSON_OBJECT_T.PARSE(JSON_TEXT)));
