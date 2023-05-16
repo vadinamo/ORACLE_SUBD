@@ -12,12 +12,13 @@ CREATE TABLE DEV.TestTable(
 ALTER TABLE DEV.TestTable ADD CONSTRAINT id_unique UNIQUE (id);
 ALTER TABLE DEV.TestTable DROP CONSTRAINT id_unique;
 
-select * from ALL_CONSTRAINTS where OWNER = 'DEV'
+select * from ALL_CONSTRAINTS where OWNER = 'DEV';
 
 
-CREATE TABLE DEV.TestTable1(
+CREATE TABLE DEV.TestTable(
     id NUMBER,
-    val NUMBER
+    val NUMBER,
+    ASD NUMBER
 );
 
 CREATE INDEX DEV.TestIndex1 ON DEV.TestTable (val);
@@ -63,7 +64,7 @@ BEGIN
     SELECT val INTO val1 FROM DEV.TestTable WHERE id = id1;
     SELECT val INTO val2 FROM DEV.TestTable WHERE id = id2;
 
-    RETURN val1 = val2;
+    RETURN val2 = val1;
 END TestFunction1;
 
 
@@ -93,7 +94,7 @@ CREATE TABLE DEV.table3 (
 );
 
 ALTER TABLE dev.table1 MODIFY ref_table REFERENCES dev.table2(id);
-ALTER TABLE dev.table2 MODIFY ref_table REFERENCES dev.table1(id);
+ALTER TABLE dev.table2 MODIFY ref_table REFERENCES dev.table3(id);
 ALTER TABLE dev.table3 MODIFY ref_table REFERENCES dev.table1(id);
 
 DROP TABLE DEV.table1;
@@ -110,6 +111,7 @@ SELECT constraint_name
 FROM all_constraints
 WHERE owner = 'DEV' AND table_name = 'TABLE3' AND constraint_type = 'R';
 
-ALTER TABLE dev.table1 DROP CONSTRAINT SYS_C008333;
-ALTER TABLE dev.table2 DROP CONSTRAINT SYS_C008333;
-ALTER TABLE dev.table3 DROP CONSTRAINT SYS_C008333;
+
+SELECT * FROM ALL_CONSTRAINTS WHERE TABLE_NAME = 'TABLE1';
+SELECT * FROM ALL_CONSTRAINTS WHERE TABLE_NAME = 'TABLE2';
+SELECT * FROM ALL_CONSTRAINTS WHERE TABLE_NAME = 'TABLE3';

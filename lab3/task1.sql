@@ -64,15 +64,15 @@ BEGIN
         IF columns_count <> 0 OR constraints_count <> 0 THEN
             DBMS_OUTPUT.PUT_LINE(dev_table.TABLE_NAME);
             CREATE_TABLE(dev_schema_name, prod_schema_name, dev_table.TABLE_NAME);
-            IF columns_count <> 0 THEN
-                DBMS_OUTPUT.PUT_LINE(CHR(9) || ' COLUMNS ');
-            END IF;
-            IF constraints_count <> 0 THEN
-                DBMS_OUTPUT.PUT_LINE(CHR(9) || ' CONSTRAINTS ');
-            END IF;
+            DBMS_OUTPUT.PUT_LINE('--------------------------------------------------');
+--             IF columns_count <> 0 THEN
+--                 DBMS_OUTPUT.PUT_LINE(CHR(9) || ' COLUMNS ');
+--             END IF;
+--             IF constraints_count <> 0 THEN
+--                 DBMS_OUTPUT.PUT_LINE(CHR(9) || ' CONSTRAINTS ');
+--             END IF;
         END IF;
     END LOOP;
-    DBMS_OUTPUT.PUT_LINE('--------------------------------------------------' || CHR(13) || CHR(10));
 end get_table_differences;
 
 -- BEGIN
